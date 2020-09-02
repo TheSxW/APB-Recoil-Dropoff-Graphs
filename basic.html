@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Line Chart</title>
+	<script src="chart.js"></script>
+	<script src="utils.js"></script>
+	<style>
+	canvas{
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	</style>
+</head>
+
+<body>
+	<div style="width:75%;">
+		<canvas id="canvas"></canvas>
+	</div>
+	<br>
+	<br>
+	<script>
+		const k = 2;
+
+		var MONTHS = ['0', '5', '10', '15', '20', '25', '30', '35', '40', '45', '50','55', '60', '65', '70', '75', '80', '85', '90', '95', '100'];
+		function createDataset(maxDamage, dOS, endOfDrop, gunType){
+			// generate points per 5 meters and apply variable Y to X
+			let startDropOff = dOS;
+			let dropoffstartIndex = startDropOff/5;
+			let allSigmoids = getSigmoidByType(gunType);
+			let dataSet = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+			for(let i = 0; i <= 20; i++){
+				if(i*5 > startDropOff)
+				{
+					dataSet[i] = (typeof allSigmoids[i - dropoffstartIndex] == "undefined")?allSigmoids[allSigmoids.length-1]:allSigmoids[i - dropoffstartIndex];
+					dataSet[i] *= maxDamage;
+				} else {
+					dataSet[i] = maxDamage;
+				}
+			}
+			return dataSet;
+		}
+		function getSigmoidByType(type){
+			// get preseted variable multiplier from curves system (1-0 multipliers)
+			switch(type)
+			{
+				case 'assalutRifle':
+				//y = 3,3917x3 - 30,525x2 + 45,633x + 166,5
+					return [1,0.88,0.65,0.42,0.3];
+				case 'rifle':
+				//y = -3,2812x2 + 10,31x + 236,64
+					return [1,0.99,0.97,0.92,0.84,0.74,0.61,0.44];
+				case 'carbine':
+				//y = 0,4833x3 - 8,9643x2 + 14,981x + 173,4
+					return [1,0.95,0.84,0.67,0.47,0.25];
+				default:
+					return [1,0];
+			}
+		}
+
+		var config = {
+			type: 'line',
+			data: {
+				labels: ['0', '5', '10', '15', '20', '25', '30', '35', '40', '45', '50','55', '60', '65', '70', '75', '80', '85', '90', '95', '100'],
+				datasets: [
+					{
+						label: 'N-TEC',
+						backgroundColor: window.chartColors.red,
+						borderColor: window.chartColors.red,
+						data: createDataset(185,50,70, 'assalutRifle'),
+						fill: false,
+					},
+					{
+						label: 'Obeya',
+						backgroundColor: window.chartColors.blue,
+						borderColor: window.chartColors.blue,
+						data: createDataset(245,55,85, 'rifle'),
+						fill: false,
+					},
+					{
+						label: 'Jocker Carbine',
+						backgroundColor: window.chartColors.yellow,
+						borderColor: window.chartColors.yellow,
+						data: createDataset(180,35,60, 'carbine'),
+						fill: false,
+					}
+				]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: 'Testing Chart'
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false,
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: true
+				},
+				scales: {
+					x: {
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Distance'
+						}
+					},
+					y: {
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Damage'
+						}
+					}
+				}
+			}
+		};
+		
+		window.onload = function() {
+			var ctx = document.getElementById('canvas').getContext('2d');
+			window.myLine = new Chart(ctx, config);
+		};
+
+		var colorNames = Object.keys(window.chartColors);
+
+	</script>
+</body>
+
+</html>
